@@ -1,4 +1,4 @@
-package plm
+package com.plm.pcm
 
 import com.typesafe.play.mini._
 import play.api.mvc._
@@ -27,20 +27,20 @@ object App extends Application {
       request => Ok("")
     }
    
-    case GET(Path("/email")) => Action {
-      request => 
-      	val credentials = new WebCredentials("hdir", "socialite!", "")
-  		service.setCredentials(credentials)
-  		service.setUrl(new URI("https://email.grassycreek.nl/ews/Exchange.asmx"))
- 
-        val view = new ItemView(50)
-        val results = service.findItems(WellKnownFolderName.Inbox, view)
-        results.getItems().foreach { i => i.load() 
-          println(i.getSubject()) }
-        
-        Ok("test")
-      
-    }
+//    case GET(Path("/email")) => Action {
+//      request => 
+//      	val credentials = new WebCredentials("hdir", "socialite!", "")
+//  		service.setCredentials(credentials)
+//  		service.setUrl(new URI("https://email.grassycreek.nl/ews/Exchange.asmx"))
+// 
+//        val view = new ItemView(50)
+//        val results = service.findItems(WellKnownFolderName.Inbox, view)
+//        results.getItems().foreach { i => i.load() 
+//          println(i.getSubject()) }
+//        
+//        Ok("test")
+//      
+//    }
     
   }
 }
