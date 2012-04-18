@@ -1,22 +1,18 @@
 import sbt._
 import Keys._
-import sbtassembly.Plugin._
-import AssemblyKeys._
+import PlayProject._
 
-object MinimalBuild extends Build {
+object ApplicationBuild extends Build {
 
-  lazy val buildVersion =  "2.0"
-  
-  lazy val typesafe = "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
-  lazy val typesafeSnapshot = "Typesafe Snapshots Repository" at "http://repo.typesafe.com/typesafe/snapshots/"
-  										
-  lazy val root = Project(id = "pcm", base = file("."), settings = Project.defaultSettings).settings(
-    version := buildVersion,
-    organization := "plm",
-    resolvers += typesafe,
-    resolvers += typesafeSnapshot,
-    libraryDependencies ++= Seq("net.vz.mongodb.jackson" %% "play-mongo-jackson-mapper" % "1.0.0-rc.3",
-  							  "com.typesafe" %% "play-mini" % buildVersion),
-    mainClass in (Compile, run) := Some("play.core.server.NettyServer")
-  ).settings(assemblySettings: _*)
+    val appName         = "pcm"
+    val appVersion      = "1.0-SNAPSHOT"
+
+    val appDependencies = Seq(
+      "net.vz.mongodb.jackson" %% "play-mongo-jackson-mapper" % "1.0.0-rc.3"
+    )
+
+    val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(
+      // Add your own project settings here      
+    )
+
 }
