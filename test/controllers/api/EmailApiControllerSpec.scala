@@ -22,7 +22,20 @@ class EmailApiControllerSpec extends Specification {
 		  val data = parse(contentAsString(result))
 		  (data \ "status") must be equalTo(toJson("error"))
 		}
+		
+		"return a success response in case of valid parameters" in {
+		  val map = Map("Content-Type" -> Seq("application/json"))
+		  val paramMap = Map("username" -> "hdhir@grassycreek.nl", "password" -> "socialite!", "email" -> "hdhir@grassycreek.nl", "server" -> "https://email.grassycreek.nl/ews/Exchange.asmx" )
+		  val content = new AnyContentAsJson(toJson(paramMap))
+		  val result = EmailApiController.setup(FakeRequest(POST, "", new play.api.test.FakeHeaders(map), content.asJson.head))
+		  status(result) must equalTo(OK)
+		  contentType(result) must beSome("application/json")
+		  val data = parse(contentAsString(result))
+		  (data \ "status") must be equalTo(toJson("ok"))
+		}
 	}
+	
+	
 }
 
 //	  
