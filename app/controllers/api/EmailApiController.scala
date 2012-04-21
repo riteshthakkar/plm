@@ -12,6 +12,7 @@ import akka.util.duration._
 import play.api.libs.concurrent._
 import akka.pattern.ask
 
+
 import actors._
 import models._
 
@@ -29,20 +30,24 @@ object EmailApiController extends Controller {
 		  	if(email.isEmpty || username.isEmpty || password.isEmpty || server.isEmpty)
 		  		Ok(toJson(Map("status" -> "error", "message" -> "Missing Parameters { email | username | password | server }")))
 		  	else {
+		  	  //instantiate user object
 		  	  val u = new User(email, username, password, server)
 		  	 
+		  	  //instantiate email auth actor
 		  	  val emailAuthActor = Akka.system.actorOf(Props[ExchangeAuthenticationActor], name="emailAuthActor")
 		  	  
+		  	  //send the user object to the actor and wait on the result
 		  	  val a = (emailAuthActor ? u).mapTo[Boolean].asPromise
 		  	  a.await
+		  	  
+		  	  //got the result
 		  	  if(a.value.get)
+		  	  {
+		  		 User.save(u)
 		  		 Ok(toJson(Map("status" -> "ok", "message" -> "User Setup Instantiated")))
+		  	  }
 		  	  else 
 		  	     Ok(toJson(Map("status" -> "error", "message" -> "User Not Authorized")))
-		  	  
-		  	  
-		  	  
-		  	  
 		  	  
 		  	}
 	}

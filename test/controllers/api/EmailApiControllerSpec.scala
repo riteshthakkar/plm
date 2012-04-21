@@ -24,9 +24,9 @@ class EmailApiControllerSpec extends Specification {
 			}
 			
 			"return an error response in case of invalid authentication parameters" in {
-					running(FakeApplication()) {
+					running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
 					  val map = Map("Content-Type" -> Seq("application/json"))
-					  val paramMap = Map("username" -> "hdi", "password" -> "socialite!", "email" -> "hdhir@grassycreek.nl", "server" -> "https://email.grassycreek.nl/ews/Exchange.asmx" )
+					  val paramMap = Map("username" -> "hdi", "password" -> "", "email" -> "hdhir@grassycreek.nl", "server" -> "https://email.grassycreek.nl/ews/Exchange.asmx" )
 					  val content = new AnyContentAsJson(toJson(paramMap))
 					  val result = EmailApiController.setup(FakeRequest(POST, "", new play.api.test.FakeHeaders(map), content.asJson.head))
 					  status(result) must equalTo(OK)
@@ -37,23 +37,20 @@ class EmailApiControllerSpec extends Specification {
 			}
 			
 			"return a success response in case of valid authentication parameters" in {
-					running(FakeApplication()) {
+					running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
 					  val map = Map("Content-Type" -> Seq("application/json"))
 					  val paramMap = Map("username" -> "hdir", "password" -> "socialite!", "email" -> "hdhir@grassycreek.nl", "server" -> "https://email.grassycreek.nl/ews/Exchange.asmx" )
 					  val content = new AnyContentAsJson(toJson(paramMap))
 					  val result = EmailApiController.setup(FakeRequest(POST, "", new play.api.test.FakeHeaders(map), content.asJson.head))
+					  
+					  // sleep for the thread so that the actor can do its job.
+					  Thread.sleep(10000L)
 					  status(result) must equalTo(OK)
 					  contentType(result) must beSome("application/json")
 					  val data = parse(contentAsString(result))
 					  (data \ "status") must be equalTo(toJson("ok"))
+					  
 				}
 			}
 	}
-	
-	
 }
-
-//	  
-//	  contentType(result) 
-//	  charset(result) must beSome("utf-8")
-//	  contentAsString(result) must contain("Hello Bob")

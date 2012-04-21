@@ -5,6 +5,8 @@ import play.api._
 import collection.JavaConversions._
 import microsoft.exchange.webservices.data._
 import java.net.URI
+import play.api.Play.current
+
 
 import models._
 
@@ -15,22 +17,22 @@ class EmailSyncActor extends Actor {
 	  
 	  def receive = {
 	    /** to start the synchronization process **/
-	    case u: User => 
+	    case u: User =>
+	      
 	      val credentials = new WebCredentials(u.username, u.password, "")
 	      service.setCredentials(credentials)
 	      service.setUrl(new URI(u.serverURI))
 	      
-	      
-	      
-	      // save the user object in the db.
-	      //User.save(u)
 	      val view = new ItemView(50)
 	      val results = service.findItems(WellKnownFolderName.Inbox, view)
-	      val subjectList = results.getItems().map {
-	        i => i.getSubject()
-          }
+	      val subjectList = results.getItems().foreach {
+	        i =>
+	          val message = EmailMessage.bind(service, i.getId);
+	          val e = new Email(u.id, message.getFrom().getAddress(), message.getToRecipients().map{_.getAddress()}.toList, message.getCcRecipients().map{_.getAddress()}.toList, message.getBccRecipients().map{_.getAddress()}.toList, message.getSubject())
+	          Email.save(e)
+	      }
 	      
-	      subjectList.toList
+	      
 	      
 	  }
 
