@@ -9,6 +9,9 @@ import play.api.libs.json.Json._
 import play.api.mvc.AnyContentAsJson
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
+import play.modules.mongodb.jackson.MongoDB
+import models.Account
+import play.api.libs.ws.WS
 
 @RunWith(classOf[JUnitRunner])
 class EmailApiControllerSpec extends Specification {
@@ -60,6 +63,21 @@ class EmailApiControllerSpec extends Specification {
 			    contentType(result) must beSome("application/json")
 			    val data = parse(contentAsString(result))
 			    (data \ "status") must be equalTo(toJson("error"))
+			  }
+			} 
+			
+			"return emails in case of valid email" in {
+			  running(FakeApplication()) {
+				val result = EmailApiController.recent("hdhir@grassycreek.nl", 0, 1)(FakeRequest(GET, ""))
+			     // sleep for the thread so that the actor can do its job.
+				Thread.sleep(2000L)
+				
+				val data = parse(contentAsString(result))
+			   
+			    println(data)
+			    status(result) must equalTo(OK)
+			    contentType(result) must beSome("application/json")
+			    //(data \ "count") must be equalTo(toJson("error"))
 			  }
 			} 
 	}

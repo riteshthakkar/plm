@@ -11,10 +11,9 @@ import akka.dispatch.Await.CanAwait
 import akka.util.duration._
 import play.api.libs.concurrent._
 import akka.pattern.ask
-
-
 import actors._
 import models._
+import play.modules.mongodb.jackson.MongoDB
 
 object EmailApiController extends Controller {
 	
@@ -61,9 +60,22 @@ object EmailApiController extends Controller {
 	    	Ok(toJson(e.head))
 	}
 	
-	def recent(userId: String, start: Int, limit: Int) = Action {
+	def recent(email: String, start: Int, limit: Int) = Action {
 	  implicit r =>
-	    val emails = Email.findByUser(userId, start, limit)
-	    Ok(toJson(emails))
+	    //instantiate email auth actor
+		val emailApiActor = Akka.system.actorOf(Props[EmailApiActor], name="emailApiActor")
+	  	val a = (emailApiActor ? Recent(email, start, limit)).mapTo[List[Email]].asPromise
+	  	a.await
+	  	
+	  	val emails = a.value.get
+	  	
+	  	if(!emails.isEmpty) {
+	  		Ok(toJson(emails))
+	  	}
+	  	else {
+	  	  Ok(toJson(Map("status" -> "error", "message" -> "error accessing emails!")))
+	  	}
+	  	
+	    
 	}
 }

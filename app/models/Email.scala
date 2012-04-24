@@ -11,7 +11,7 @@ import play.api.libs.json._
 import play.api.libs.json.Json._
 
 class Email(@ObjectId @Id val id: String,
-			@BeanProperty @ObjectId @JsonProperty("userId") val userId: String,
+			@BeanProperty @JsonProperty("userId") val userId: String,
 			@BeanProperty @JsonProperty("from") val from: String,
 			@BeanProperty @JsonProperty("to") val to: List[String],
 			@BeanProperty @JsonProperty("cc") val cc: List[String],
@@ -20,7 +20,7 @@ class Email(@ObjectId @Id val id: String,
 			@BeanProperty @JsonProperty("body") val body: String,
 			@BeanProperty @JsonProperty("exchangeId") val exchangeId: String,
 			@BeanProperty @JsonProperty("sentdate") val sentDate: Long,
-			@BeanProperty @ObjectId @JsonProperty("folderId") val folderId: String) {
+			@BeanProperty @JsonProperty("folderId") val folderId: String) {
     	@ObjectId @Id def getId = id
     	def this(uid: String, from: String, to: List[String], cc: List[String], bcc: List[String], subject: String, body: String, exchangeId: String, sentDate: Long, folderId: String) = this(org.bson.types.ObjectId.get.toString, uid, from, to, cc, bcc, subject, body, exchangeId, sentDate, folderId)
 }
@@ -38,7 +38,10 @@ object Email {
     }
     def findByUser(userId: String) = db.find().is("uid", userId).toArray.toList
     
-    def findByUser(userId: String, start: Int, limit: Int) = db.find().is("userId", userId).skip(start).limit(limit).toArray.toList
+    def findByUser(userId: String, start: Int, limit: Int) = {
+      val db = MongoDB.collection("emails", classOf[Email], classOf[String])
+      db.find().is("userId", userId).skip(start).limit(limit).toArray.toList
+    }
      
     implicit object EmailReads extends Format[Email] {
 	    def reads(json: JsValue) = new Email(
