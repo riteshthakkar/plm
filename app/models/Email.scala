@@ -11,7 +11,7 @@ import play.api.libs.json._
 import play.api.libs.json.Json._
 
 class Email(@ObjectId @Id val id: String,
-			@BeanProperty @JsonProperty("userId") val userId: String,
+			@BeanProperty @ObjectId @JsonProperty("userId") val userId: String,
 			@BeanProperty @JsonProperty("from") val from: String,
 			@BeanProperty @JsonProperty("to") val to: List[String],
 			@BeanProperty @JsonProperty("cc") val cc: List[String],
@@ -19,9 +19,10 @@ class Email(@ObjectId @Id val id: String,
 			@BeanProperty @JsonProperty("subject") val subject: String,
 			@BeanProperty @JsonProperty("body") val body: String,
 			@BeanProperty @JsonProperty("exchangeId") val exchangeId: String,
-			@BeanProperty @JsonProperty("sentdate") val sentDate: Long) {
+			@BeanProperty @JsonProperty("sentdate") val sentDate: Long,
+			@BeanProperty @ObjectId @JsonProperty("folderId") val folderId: String) {
     	@ObjectId @Id def getId = id
-    	def this(uid: String, from: String, to: List[String], cc: List[String], bcc: List[String], subject: String, body: String, exchangeId: String, sentDate: Long) = this(org.bson.types.ObjectId.get.toString, uid, from, to, cc, bcc, subject, body, exchangeId, sentDate)
+    	def this(uid: String, from: String, to: List[String], cc: List[String], bcc: List[String], subject: String, body: String, exchangeId: String, sentDate: Long, folderId: String) = this(org.bson.types.ObjectId.get.toString, uid, from, to, cc, bcc, subject, body, exchangeId, sentDate, folderId)
 }
 
 object Email {
@@ -50,7 +51,8 @@ object Email {
 	      (json \ "subject").as[String],
 	      (json \ "body").as[String],
 	      (json \ "exchangeId").as[String],
-	      (json \ "sentdate").as[Long])
+	      (json \ "sentdate").as[Long],
+	      (json \ "folderId").as[String])
 	    
 	    def writes(e: Email) = JsObject(Seq(
 	      "id" -> JsString(e.id),
@@ -62,6 +64,7 @@ object Email {
 	      "subject" -> JsString(e.subject),
 	      "body" -> JsString(e.body),
 	      "exchangeId" -> JsString(e.exchangeId),
-	      "sentdate" -> JsNumber(e.sentDate)))
+	      "sentdate" -> JsNumber(e.sentDate),
+	      "folderId" -> JsString(e.folderId)))
     }
 }
