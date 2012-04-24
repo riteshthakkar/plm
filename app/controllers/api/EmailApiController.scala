@@ -31,7 +31,7 @@ object EmailApiController extends Controller {
 		  		Ok(toJson(Map("status" -> "error", "message" -> "Missing Parameters { email | username | password | server }")))
 		  	else {
 		  	  //instantiate user object
-		  	  val u = new User(email, username, password, server)
+		  	  val u = new Account(email, username, password, server)
 		  	 
 		  	  //instantiate email auth actor
 		  	  val emailAuthActor = Akka.system.actorOf(Props[ExchangeAuthenticationActor], name="emailAuthActor")
@@ -43,12 +43,27 @@ object EmailApiController extends Controller {
 		  	  //got the result
 		  	  if(a.value.get)
 		  	  {
-		  		 User.save(u)
+		  		 Account.save(u)
 		  		 Ok(toJson(Map("status" -> "ok", "message" -> "User Setup Instantiated")))
 		  	  }
 		  	  else 
 		  	     Ok(toJson(Map("status" -> "error", "message" -> "User Not Authorized")))
-		  	  
 		  	}
+	}
+	
+	def detail(id: String) = Action {
+	  implicit r =>
+	    val e = Email.findById(id)
+	    if(e.isEmpty) {
+	      Ok(toJson(Map("status" -> "error", "message" -> "email not found")))
+	    }
+	    else
+	    	Ok(toJson(e.head))
+	}
+	
+	def recent(userId: String, start: Int, limit: Int) = Action {
+	  implicit r =>
+	    val emails = Email.findByUser(userId, start, limit)
+	    Ok(toJson(emails))
 	}
 }

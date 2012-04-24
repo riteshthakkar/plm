@@ -52,5 +52,15 @@ class EmailApiControllerSpec extends Specification {
 					  
 				}
 			}
+			
+			"return an error response in case of invalid email id" in {
+			  running(FakeApplication()) {
+			    val result = EmailApiController.detail("eee2o2")(FakeRequest(GET, ""))
+			    status(result) must equalTo(OK)
+			    contentType(result) must beSome("application/json")
+			    val data = parse(contentAsString(result))
+			    (data \ "status") must be equalTo(toJson("error"))
+			  }
+			} 
 	}
 }

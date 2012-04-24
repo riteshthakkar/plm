@@ -17,7 +17,7 @@ class ExchangeAuthenticationActor extends Actor {
 	  
 	  def receive = {
 	    /** to start the synchronization process **/
-	    case u: User => 
+	    case u: Account => 
 	      val credentials = new WebCredentials(u.username, u.password, "")
 	      service.setCredentials(credentials)
 	      service.setUrl(new URI(u.serverURI))

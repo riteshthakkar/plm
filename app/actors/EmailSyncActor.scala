@@ -17,7 +17,7 @@ class EmailSyncActor extends Actor {
 	  
 	  def receive = {
 	    /** to start the synchronization process **/
-	    case u: User =>
+	    case u: Account =>
 	      
 	      val credentials = new WebCredentials(u.username, u.password, "")
 	      service.setCredentials(credentials)
@@ -28,12 +28,10 @@ class EmailSyncActor extends Actor {
 	      val subjectList = results.getItems().foreach {
 	        i =>
 	          val message = EmailMessage.bind(service, i.getId);
-	          val e = new Email(u.id, message.getFrom().getAddress(), message.getToRecipients().map{_.getAddress()}.toList, message.getCcRecipients().map{_.getAddress()}.toList, message.getBccRecipients().map{_.getAddress()}.toList, message.getSubject())
+	          message.load
+	          val e = new Email(u.id, message.getFrom().getAddress(), message.getToRecipients().map{_.getAddress()}.toList, message.getCcRecipients().map{_.getAddress()}.toList, message.getBccRecipients().map{_.getAddress()}.toList, message.getSubject(), message.getBody().toString(), message.getId().toString(), message.getDateTimeReceived().getTime())
 	          Email.save(e)
 	      }
-	      
-	      
-	      
 	  }
 
 }
