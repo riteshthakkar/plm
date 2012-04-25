@@ -13,6 +13,8 @@ import play.api.libs.concurrent._
 import akka.pattern.ask
 import actors._
 import models._
+import microsoft.exchange.webservices.data._
+import java.net.URI
 import play.modules.mongodb.jackson.MongoDB
 
 object EmailApiController extends Controller {
@@ -75,7 +77,38 @@ object EmailApiController extends Controller {
 	  	else {
 	  	  Ok(toJson(Map("status" -> "error", "message" -> "error accessing emails!")))
 	  	}
-	  	
-	    
 	}
+	 def send = Action(parse.json) {
+		 	implicit r =>
+	  		//val userId=(r.body \ "userId").asOpt[String].getOrElse("")
+	  		val from=(r.body \ "from").asOpt[String].getOrElse("")
+	  		val to=(r.body \ "to").asOpt[String].getOrElse("")
+	  		val cc=(r.body \ "cc").asOpt[String].getOrElse("")
+	  		val bcc=(r.body \ "bcc").asOpt[String].getOrElse("")
+	  		val subject=(r.body \ "subject").asOpt[String].getOrElse("")
+	  		val body=(r.body \ "body").asOpt[String].getOrElse("")
+	    
+	    	val service = new ExchangeService()
+	  		val a = Account.findByEmail(from)
+	  		
+	    
+	    if(a.isEmpty) {
+	      Ok(toJson(Map("status" -> "error", "message" -> "invalid user id")))
+	    }
+	    else {
+	    	val account = a.head
+	    	
+	    	val credentials = new WebCredentials(account.username,account.password,"")
+	  		service.setCredentials(credentials)
+	  		service.setUrl(new URI(account.serverURI))
+		    val email = new EmailMessage(service)
+		    email.getToRecipients.add(EmailAddress.getEmailAddressFromString(to))
+		    email.getCcRecipients.add(EmailAddress.getEmailAddressFromString(cc))
+		    email.setSubject(subject)
+		    email.setFrom(EmailAddress.getEmailAddressFromString(from))
+		    email.setBody(MessageBody.getMessageBodyFromText(body))
+		    email.send()
+		    Ok(toJson(Map("status" -> "success", "message" -> "email has been sent!")))
+	    }
+	  }
 }
