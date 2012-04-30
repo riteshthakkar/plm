@@ -30,6 +30,17 @@ object Folder {
         case e: IllegalArgumentException => Option.empty[Folder]
       }
     }
+    
+    def exists(uId: String, name: String) = {
+      val db = MongoDB.collection("folders", classOf[Folder], classOf[String])
+      (db.find().is("uid", uId).is("folderName", name).count >= 1)
+    }
+    
+    def findByUserAndName(uId: String, name: String) = {
+      val db = MongoDB.collection("folders", classOf[Folder], classOf[String])
+      db.find().is("uid", uId).is("folderName", name).limit(1).toArray().toList.headOption
+    }
+    
     def findByUser(userId: String) = db.find().is("uid", userId).toArray.toList
     
     def findByUser(userId: String, start: Int, limit: Int) = db.find().is("userId", userId).skip(start).limit(limit).toArray.toList
@@ -48,5 +59,9 @@ object Folder {
 	      "folderName" -> JsString(e.folderName),
 	      "folderType" -> JsString(e.folderType),
 	      "exchangeId" -> JsString(e.exchangeId)))
+    }
+    
+    def updateFolderId(emailId: String, folderId: String) = {
+      
     }
 }

@@ -82,33 +82,97 @@ object EmailApiController extends Controller {
 		 	implicit r =>
 	  		//val userId=(r.body \ "userId").asOpt[String].getOrElse("")
 	  		val from=(r.body \ "from").asOpt[String].getOrElse("")
-	  		val to=(r.body \ "to").asOpt[String].getOrElse("")
-	  		val cc=(r.body \ "cc").asOpt[String].getOrElse("")
-	  		val bcc=(r.body \ "bcc").asOpt[String].getOrElse("")
+	  		val to =(r.body \ "to").asOpt[String].getOrElse("")
+	  		val cc =(r.body \ "cc").asOpt[String].getOrElse("")
+	  		val bcc =(r.body \ "bcc").asOpt[String].getOrElse("")
 	  		val subject=(r.body \ "subject").asOpt[String].getOrElse("")
 	  		val body=(r.body \ "body").asOpt[String].getOrElse("")
 	    
 	    	val service = new ExchangeService()
 	  		val a = Account.findByEmail(from)
-	  		
+
 	    
 	    if(a.isEmpty) {
 	      Ok(toJson(Map("status" -> "error", "message" -> "invalid user id")))
 	    }
 	    else {
+
 	    	val account = a.head
 	    	
 	    	val credentials = new WebCredentials(account.username,account.password,"")
 	  		service.setCredentials(credentials)
 	  		service.setUrl(new URI(account.serverURI))
+	  		
+	  		//send an email thru the exchange server
+	    	val sentItems = microsoft.exchange.webservices.data.Folder.bind(service, WellKnownFolderName.SentItems);
+	    	val sFolder = !models.Folder.exists(account.id, "sent") match {
+	    	  				case true => new models.Folder(account.id, sentItems.getDisplayName(), "sent", sentItems.getId().getUniqueId()) 
+	    	  				case _ => models.Folder.findByUserAndName(account.id, "sent").head
+	    				}
+	    	
+	    	models.Folder.save(sFolder)
+	    	
+	    	
+	  		
 		    val email = new EmailMessage(service)
 		    email.getToRecipients.add(EmailAddress.getEmailAddressFromString(to))
 		    email.getCcRecipients.add(EmailAddress.getEmailAddressFromString(cc))
 		    email.setSubject(subject)
 		    email.setFrom(EmailAddress.getEmailAddressFromString(from))
 		    email.setBody(MessageBody.getMessageBodyFromText(body))
+		     
 		    email.send()
-		    Ok(toJson(Map("status" -> "success", "message" -> "email has been sent!")))
+
+		    print("ERROR 1 : "+ email.getId().toString())
+		    print("ERROR 2 : "+ email.getDateTimeSent().getTime())
+		    // save the email in our local mongo instance in the "sent" folder
+		    //val e = new Email(account.id, from, to :: Nil, cc :: Nil, bcc :: Nil, subject, body, email.getId().toString(), email.getDateTimeSent().getTime(), sFolder.id)
+	    	//Email.save(e)
+	    	
+	    	
+		    Ok(toJson(Map("status" -> "success", "message" -> "Email has been sent and saved!")))
 	    }
 	  }
+	 
+	 def delete = Action(parse.json) {
+	   implicit r=>
+	     val userId = (r.body \ "userId").asOpt[String].getOrElse("")
+	     val emailId = (r.body \ "emailId").asOpt[String].getOrElse("")
+	     
+	     val service = new ExchangeService()
+	  	 val a = Account.findById(userId)
+	  	 val emailBox = Email.findById(emailId)
+	  	 
+	  	 if(a.isEmpty || emailBox.isEmpty){
+	  	   Ok(toJson(Map("status" -> "error", "message" -> "invalid parameters")))
+	  	 }
+	  	 else{
+	  	   val existingEmail = emailBox.head
+	  	   
+	  	   val account = a.head
+	  	   val deletedItems = microsoft.exchange.webservices.data.Folder.bind(service, WellKnownFolderName.DeletedItems);
+	       val dFolder = !models.Folder.exists(account.id, "deleted") match {
+	         case true => new models.Folder(account.id, deletedItems.getDisplayName(), "deleted", deletedItems.getId().getUniqueId())
+	         case _ => models.Folder.findByUserAndName(account.id, "deleted").head
+	    	}
+	       models.Folder.save(dFolder)
+	       
+	       val credentials = new WebCredentials(account.username,account.password,"")
+	  	   service.setCredentials(credentials)
+	  	   service.setUrl(new URI(account.serverURI))
+	       
+	  	   
+	  	   //move to deleted items
+	  	   val message = EmailMessage.bind(service, ItemId.getItemIdFromString(existingEmail.exchangeId))
+	  	   message.delete(DeleteMode.MoveToDeletedItems)
+	       
+	  	   //updating the FolderId
+	  	   
+	       val e = new Email(existingEmail.id, userId, existingEmail.from, existingEmail.to, existingEmail.cc, existingEmail.bcc, existingEmail.subject, existingEmail.body, existingEmail.exchangeId, existingEmail.sentDate, dFolder.id)
+	       Email.save(e)
+	       
+	        Ok(toJson(Map("status" -> "success", "message" -> "Email has been deleted!")))
+	       
+	  	 }
+	 }
 }
