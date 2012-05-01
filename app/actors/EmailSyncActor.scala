@@ -22,21 +22,36 @@ class EmailSyncActor extends Actor {
 	      service.setCredentials(credentials)
 	      service.setUrl(new URI(u.serverURI))
 	      
-	      // start syncing inbox folder
+	      // start syncing inbox, outbox and deleted items folder
 	      // create folder in the system
-	      val inbox = Folder.bind(service, WellKnownFolderName.Inbox);
-	      val iFolder = new models.Folder(u.id, inbox.getDisplayName(), "inbox", inbox.getId().getUniqueId())
+	      val rootFolder = Folder.bind(service, WellKnownFolderName.PublicFoldersRoot);
 	      
+	      val rFolder = new models.Folder(u.id, rootFolder.getDisplayName(), "rootFolder", rootFolder.getId().getUniqueId())
 	      val view = new ItemView(50)
-	      val results = service.findItems(inbox.getId(), view)
+	      val results = service.findItems(rootFolder.getId(), view)   
 	      
+	      
+	      val fResult = service.findFolders(WellKnownFolderName.PublicFoldersRoot,new FolderView(Integer.MAX_VALUE)).foreach{
+	        i =>
+	          while(results.isMoreAvailable()){
+	          val subjectList = results.getItems().foreach {
+	        	  i =>
+	          val message = EmailMessage.bind(service, i.getId);
+	          message.load
+	          val e = new Email(u.id, message.getFrom().getAddress(), message.getToRecipients().map{_.getAddress()}.toList, message.getCcRecipients().map{_.getAddress()}.toList, message.getBccRecipients().map{_.getAddress()}.toList, message.getSubject(), message.getBody().toString(), message.getId().toString(), message.getDateTimeReceived().getTime(), rFolder.id)
+	          Email.save(e)
+	      }}
+	      }
+	      
+	      
+	      /*while (results.isMoreAvailable()){
 	      val subjectList = results.getItems().foreach {
 	        i =>
 	          val message = EmailMessage.bind(service, i.getId);
 	          message.load
-	          val e = new Email(u.id, message.getFrom().getAddress(), message.getToRecipients().map{_.getAddress()}.toList, message.getCcRecipients().map{_.getAddress()}.toList, message.getBccRecipients().map{_.getAddress()}.toList, message.getSubject(), message.getBody().toString(), message.getId().toString(), message.getDateTimeReceived().getTime(), iFolder.id)
+	          val e = new Email(u.id, message.getFrom().getAddress(), message.getToRecipients().map{_.getAddress()}.toList, message.getCcRecipients().map{_.getAddress()}.toList, message.getBccRecipients().map{_.getAddress()}.toList, message.getSubject(), message.getBody().toString(), message.getId().toString(), message.getDateTimeReceived().getTime(), rFolder.id)
 	          Email.save(e)
-	      }
+	      }}*/	      
 	  }
 
 }

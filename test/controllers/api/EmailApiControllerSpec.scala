@@ -52,7 +52,6 @@ class EmailApiControllerSpec extends Specification {
 					  contentType(result) must beSome("application/json")
 					  val data = parse(contentAsString(result))
 					  (data \ "status") must be equalTo(toJson("ok"))
-					  
 				}
 			}
 			
@@ -94,6 +93,7 @@ class EmailApiControllerSpec extends Specification {
 			  (data \ "status") must be equalTo(toJson("success"))  
 			}
 		}
+			
 			"return a success when email is deleted" in {
 			  running(FakeApplication()) {
 			  val map = Map("Content-Type" -> Seq("application/json"))

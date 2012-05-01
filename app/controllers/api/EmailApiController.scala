@@ -123,8 +123,8 @@ object EmailApiController extends Controller {
 		     
 		    email.send()
 
-		    print("ERROR 1 : "+ email.getId().toString())
-		    print("ERROR 2 : "+ email.getDateTimeSent().getTime())
+		    print("1 "+ email.getId().toString())
+		    print("2 "+ email.getDateTimeSent().getTime())
 		    // save the email in our local mongo instance in the "sent" folder
 		    //val e = new Email(account.id, from, to :: Nil, cc :: Nil, bcc :: Nil, subject, body, email.getId().toString(), email.getDateTimeSent().getTime(), sFolder.id)
 	    	//Email.save(e)
