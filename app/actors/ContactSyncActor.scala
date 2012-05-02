@@ -6,7 +6,7 @@ import collection.JavaConversions._
 import microsoft.exchange.webservices.data._
 import java.net.URI
 import play.api.Play.current
-import models._
+import models.Account
 import microsoft.exchange.webservices.data.Folder
 
 
@@ -22,20 +22,23 @@ class ContactSyncActor extends Actor {
 	      service.setCredentials(credentials)
 	      service.setUrl(new URI(u.serverURI))
 	      
-	      // start syncing inbox folder
+	      // start syncing contact folder
 	      // create folder in the system
-	      val inbox = Folder.bind(service, WellKnownFolderName.Inbox);
-	      val iFolder = new models.Folder(u.id, inbox.getDisplayName(), "inbox", inbox.getId().getUniqueId())
+	      val contacts = Folder.bind(service, WellKnownFolderName.Contacts);
+	      val iFolder = new models.Folder(u.id, contacts.getDisplayName(), "contacts", contacts.getId().getUniqueId())
 	      
 	      val view = new ItemView(50)
-	      val results = service.findItems(inbox.getId(), view)
+	      val results = service.findItems(contacts.getId(), view)
 	      
-	      val subjectList = results.getItems().foreach {
+	      val contactCnt = results.getItems().foreach {
 	        i =>
-	          val message = EmailMessage.bind(service, i.getId);
-	          message.load
-	          val e = new Email(u.id, message.getFrom().getAddress(), message.getToRecipients().map{_.getAddress()}.toList, message.getCcRecipients().map{_.getAddress()}.toList, message.getBccRecipients().map{_.getAddress()}.toList, message.getSubject(), message.getBody().toString(), message.getId().toString(), message.getDateTimeReceived().getTime(), iFolder.id)
-	          Email.save(e)
+	          /* for below line..
+	           *  instead of EmailMessage some webservice 
+	           * like  contacts equiv ....mostly this shud work*/
+	          val contactDetails = Contact.bind(service, i.getId);
+	          contactDetails.load
+	          val c = new Contact(contactDetails.getuserId(),contactDetails.getGivenName(),contactDetails.FName(), contactDetails.LName(),contactDetails.getEmailId().map{_.getAddress()}.toList,contactDetails.getDisplayName(),contactDetails.getAddress().map{_.getAddress()}.toList, contactDetails.getPhoneNos().map{_.getNos()}.toList,contactDetails.getNotes(),contactDetails.getBday(),contactDetails.getHasPicture(), contactDetails.getId().toString(), iFolder.id)
+	          Contact.save(c)
 	      }
 	  }
 
