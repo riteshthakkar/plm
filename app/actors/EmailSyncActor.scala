@@ -9,7 +9,6 @@ import play.api.Play.current
 import models._
 import microsoft.exchange.webservices.data.Folder
 
-
 class EmailSyncActor extends Actor {
   
 	  val service = new ExchangeService();
@@ -25,14 +24,17 @@ class EmailSyncActor extends Actor {
 	      // start syncing inbox, outbox and deleted items folder
 	      // create folder in the system
 	      val rootFolder = Folder.bind(service, WellKnownFolderName.PublicFoldersRoot);
-	      
 	      val rFolder = new models.Folder(u.id, rootFolder.getDisplayName(), "rootFolder", rootFolder.getId().getUniqueId())
-	      val view = new ItemView(50)
-	      val results = service.findItems(rootFolder.getId(), view)   
+	      //val view = new ItemView(50)
+	      //val results = service.findItems(rootFolder.getId(), view)   
 	      
 	      
-	      val fResult = service.findFolders(WellKnownFolderName.PublicFoldersRoot,new FolderView(Integer.MAX_VALUE)).foreach{
+	      val findResult = service.findFolders(WellKnownFolderName.PublicFoldersRoot,new FolderView(Integer.MAX_VALUE))
+	      val folder = findResult.getFolders().foreach{
 	        i =>
+	          val view = new ItemView(50)
+	          val results = service.findItems(i.getId(), view)
+	          
 	          while(results.isMoreAvailable()){
 	          val subjectList = results.getItems().foreach {
 	        	  i =>
@@ -41,6 +43,11 @@ class EmailSyncActor extends Actor {
 	          val e = new Email(u.id, message.getFrom().getAddress(), message.getToRecipients().map{_.getAddress()}.toList, message.getCcRecipients().map{_.getAddress()}.toList, message.getBccRecipients().map{_.getAddress()}.toList, message.getSubject(), message.getBody().toString(), message.getId().toString(), message.getDateTimeReceived().getTime(), rFolder.id)
 	          Email.save(e)
 	      }}
+	          
+	          
+	          
+	          //val subscription = service.subscribeToPullNotifications(folder,5, null, EventType.NewMail, EventType.Created, EventType.Deleted)
+	          
 	      }
 	      
 	      
