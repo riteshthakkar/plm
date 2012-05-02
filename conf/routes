@@ -14,5 +14,12 @@ POST	/api/email/send										controllers.api.EmailApiController.send
 POST	/api/email/delete									controllers.api.EmailApiController.delete
 #POST	/api/email/search									controllers.api.EmailApiController.search(query: String)
 
+# contact API Routes
+POST /api/contact/add 										controllers.api.ContactApiController.add
+POST /api/contact/del 										controllers.api.ContactApiController.del
+POST /api/contact/edit 										controllers.api.ContactApiController.edit
+GET /api/contact/view										controllers.api.ContactApiController.view(id: String)
+GET /api/contact/search 									controllers.api.ContactApiController.search(name:String)
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               						controllers.Assets.at(path="/public", file)
