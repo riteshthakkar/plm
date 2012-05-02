@@ -123,11 +123,11 @@ object EmailApiController extends Controller {
 		     
 		    email.send()
 
-		    print("1 "+ email.getId().toString())
-		    print("2 "+ email.getDateTimeSent().getTime())
+		    //print("1 "+ email.getInternetMessageId())
+		    //print("2 "+ email.getDateTimeSent().getTime())
 		    // save the email in our local mongo instance in the "sent" folder
-		    //val e = new Email(account.id, from, to :: Nil, cc :: Nil, bcc :: Nil, subject, body, email.getId().toString(), email.getDateTimeSent().getTime(), sFolder.id)
-	    	//Email.save(e)
+		    val e = new Email(account.id, from, to :: Nil, cc :: Nil, bcc :: Nil, subject, body, email.getInternetMessageId(), email.getDateTimeSent().getDate(), sFolder.id)
+	    	Email.save(e)
 	    	
 	    	
 		    Ok(toJson(Map("status" -> "success", "message" -> "Email has been sent and saved!")))
