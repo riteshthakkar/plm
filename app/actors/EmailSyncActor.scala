@@ -24,18 +24,21 @@ class EmailSyncActor extends Actor {
 	      
 	      // start syncing inbox folder
 	      // create folder in the system
+	      
 	      val inbox = Folder.bind(service, WellKnownFolderName.Inbox);
 	      val iFolder = new models.Folder(u.id, inbox.getDisplayName(), "inbox", inbox.getId().getUniqueId())
 	      
 	      val view = new ItemView(50)
 	      val results = service.findItems(inbox.getId(), view)
 	      
-	      val subjectList = results.getItems().foreach {
-	        i =>
-	          val message = EmailMessage.bind(service, i.getId);
-	          message.load
-	          val e = new Email(u.id, message.getFrom().getAddress(), message.getToRecipients().map{_.getAddress()}.toList, message.getCcRecipients().map{_.getAddress()}.toList, message.getBccRecipients().map{_.getAddress()}.toList, message.getSubject(), message.getBody().toString(), message.getId().toString(), message.getDateTimeReceived().getTime(), iFolder.id)
-	          Email.save(e)
+	      while(results.isMoreAvailable()) {
+		      val subjectList = results.getItems().foreach {
+		        i =>
+		          val message = EmailMessage.bind(service, i.getId);
+		          message.load
+		          val e = new Email(u.id, message.getFrom().getAddress(), message.getToRecipients().map{_.getAddress()}.toList, message.getCcRecipients().map{_.getAddress()}.toList, message.getBccRecipients().map{_.getAddress()}.toList, message.getSubject(), message.getBody().toString(), message.getId().toString(), message.getDateTimeReceived().getTime(), iFolder.id)
+		          Email.save(e)
+		      }
 	      }
 	  }
 

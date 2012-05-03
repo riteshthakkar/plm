@@ -42,6 +42,11 @@ object Email {
       val db = MongoDB.collection("emails", classOf[Email], classOf[String])
       db.find().is("userId", userId).skip(start).limit(limit).toArray.toList
     }
+    
+    def findByFolderAndUser(folderId: String, userId: String,  start: Int, limit: Int) = {
+      val db = MongoDB.collection("emails", classOf[Email], classOf[String])
+      db.find().is("folderId", folderId).is("userId", userId).skip(start).limit(limit).toArray.toList
+    }
      
     implicit object EmailReads extends Format[Email] {
 	    def reads(json: JsValue) = new Email(
