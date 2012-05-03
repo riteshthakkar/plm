@@ -16,14 +16,14 @@ import models._
 import microsoft.exchange.webservices.data._
 import java.net.URI
 import play.modules.mongodb.jackson.MongoDB
-import models.ContactObj
+import models._
 
 
 object ContactApiController extends Controller {
 	
 	implicit val timeout1 = Timeout(10 seconds) // needed for `?` below
 	
-	def Csetup = Action(parse.json) {
+	def setup = Action(parse.json) {
 		implicit r => 
 		  	val email = (r.body \ "email").asOpt[String].getOrElse("")
 		  	val username = (r.body \ "username").asOpt[String].getOrElse("")
@@ -61,7 +61,7 @@ object ContactApiController extends Controller {
 	
 	def detail(id: String) = Action {
 	  implicit r =>
-	    val c = ContactObj.findById(id)
+	    val c = models.Contact.findById(id)
 	    if(c.isEmpty) {
 	      Ok(toJson(Map("status" -> "error", "message" -> "email not found")))
 	    }
@@ -75,10 +75,10 @@ object ContactApiController extends Controller {
 	     val userId = (r.body \ "userId").asOpt[String].getOrElse("")
 	     val contactId = (r.body \ "id").asOpt[String].getOrElse("")
 	     //this needs to b editted
-	      Contact contactDel = Contact.Bind(service, contactId);
+	     // val contactDel = Contact.Bind(service, contactId);
 
 	     // Delete the contact and move the deleted contact to the Deleted Items folder. 
-	     contactDel.Delete(DeleteMode.MoveToDeletedItems);
+	     //contactDel.Delete(DeleteMode.MoveToDeletedItems);
 	       
 	  	   Ok(toJson(Map("status" -> "success", "message" -> "Contact has been deleted!")))
 	       

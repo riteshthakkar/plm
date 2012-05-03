@@ -19,7 +19,7 @@ class ContactApiControllerSpec extends Specification {
 			"throw an error in case of invalid parameters" in {
 			  val map = Map("Content-Type" -> Seq("application/json"))
 			  val content = new AnyContentAsJson(parse("{}"))
-			  val result = ContactApiController.Csetup(FakeRequest(POST, "", new play.api.test.FakeHeaders(map), content.asJson.head))
+			  val result = ContactApiController.setup(FakeRequest(POST, "", new play.api.test.FakeHeaders(map), content.asJson.head))
 			  status(result) must equalTo(OK)
 			  contentType(result) must beSome("application/json")
 			  val data = parse(contentAsString(result))
@@ -31,7 +31,7 @@ class ContactApiControllerSpec extends Specification {
 					  val map = Map("Content-Type" -> Seq("application/json"))
 					  val paramMap = Map("username" -> "hdi", "password" -> "", "email" -> "hdhir@grassycreek.nl", "server" -> "https://email.grassycreek.nl/ews/Exchange.asmx" )
 					  val content = new AnyContentAsJson(toJson(paramMap))
-					  val result = ContactApiController.Csetup(FakeRequest(POST, "", new play.api.test.FakeHeaders(map), content.asJson.head))
+					  val result = ContactApiController.setup(FakeRequest(POST, "", new play.api.test.FakeHeaders(map), content.asJson.head))
 					  status(result) must equalTo(OK)
 					  contentType(result) must beSome("application/json")
 					  val data = parse(contentAsString(result))
@@ -44,7 +44,7 @@ class ContactApiControllerSpec extends Specification {
 					  val map = Map("Content-Type" -> Seq("application/json"))
 					  val paramMap = Map("username" -> "hdir", "password" -> "socialite!", "email" -> "hdhir@grassycreek.nl", "server" -> "https://email.grassycreek.nl/ews/Exchange.asmx" )
 					  val content = new AnyContentAsJson(toJson(paramMap))
-					  val result = ContactApiController.Csetup(FakeRequest(POST, "", new play.api.test.FakeHeaders(map), content.asJson.head))
+					  val result = ContactApiController.setup(FakeRequest(POST, "", new play.api.test.FakeHeaders(map), content.asJson.head))
 					  
 					  // sleep for the thread so that the actor can do its job.
 					  Thread.sleep(10000L)

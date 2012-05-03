@@ -6,8 +6,9 @@ import collection.JavaConversions._
 import microsoft.exchange.webservices.data._
 import java.net.URI
 import play.api.Play.current
-import models.Account
+import models._
 import microsoft.exchange.webservices.data.Folder
+import microsoft.exchange.webservices.data.Contact
 
 
 class ContactSyncActor extends Actor {
@@ -37,8 +38,8 @@ class ContactSyncActor extends Actor {
 	           * like  contacts equiv ....mostly this shud work*/
 	          val contactDetails = Contact.bind(service, i.getId);
 	          contactDetails.load
-	          val c = new Contact(contactDetails.getuserId(),contactDetails.getGivenName(),contactDetails.FName(), contactDetails.LName(),contactDetails.getEmailId().map{_.getAddress()}.toList,contactDetails.getDisplayName(),contactDetails.getAddress().map{_.getAddress()}.toList, contactDetails.getPhoneNos().map{_.getNos()}.toList,contactDetails.getNotes(),contactDetails.getBday(),contactDetails.getHasPicture(), contactDetails.getId().toString(), iFolder.id)
-	          Contact.save(c)
+	         //val c = new models.Contact(contactDetails.get,contactDetails.getGivenName(),contactDetails.FName(), contactDetails.LName(),contactDetails.getEmailId().map{_.getAddress()}.toList,contactDetails.getDisplayName(),contactDetails.getAddress().map{_.getAddress()}.toList, contactDetails.getPhoneNos().map{_.getNos()}.toList,contactDetails.getNotes(),contactDetails.getBday(),contactDetails.getHasPicture(), contactDetails.getId().toString(), iFolder.id)
+	         //models.Contact.save(c)
 	      }
 	  }
 
