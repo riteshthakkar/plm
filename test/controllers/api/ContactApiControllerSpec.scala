@@ -67,7 +67,7 @@ class ContactApiControllerSpec extends Specification {
 			} 
 			
 						
-					"return a success when email is deleted" in {
+		/*			"return a success when email is deleted" in {
 			  running(FakeApplication()) {
 			  val map = Map("Content-Type" -> Seq("application/json"))
 			  val paramMap = Map("userId" -> "hdhir@grassycreek.nl", "email" -> "hdhir@grassycreek.nl")
@@ -79,6 +79,6 @@ class ContactApiControllerSpec extends Specification {
 			  val data = parse(contentAsString(result))
 			  (data \ "status") must be equalTo(toJson("success"))  
 			}
-		}
+		}*/
 	}
 }

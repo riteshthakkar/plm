@@ -12,16 +12,18 @@ import akka.util.duration._
 import play.api.libs.concurrent._
 import akka.pattern.ask
 import actors._
-import models._
+import models.Account
 import microsoft.exchange.webservices.data._
 import java.net.URI
 import play.modules.mongodb.jackson.MongoDB
-import models._
+import java.util.Date
 
 
 object ContactApiController extends Controller {
 	
-	implicit val timeout1 = Timeout(10 seconds) // needed for `?` below
+	implicit val timeout1 = Timeout(10 seconds) 
+	
+	val service = new ExchangeService()
 	
 	def setup = Action(parse.json) {
 		implicit r => 
@@ -54,6 +56,8 @@ object ContactApiController extends Controller {
 		  	     Ok(toJson(Map("status" -> "error", "message" -> "User Not Authorized")))
 		  	}
 	}
+	
+	
 	/* this method is to check whether the email address 
 	 * of the login person is present in accounts 
 	 * no changes reqd here..
@@ -70,64 +74,120 @@ object ContactApiController extends Controller {
 	}
 	
 	
+	/*******************func to delete contact *******************************/ 
+	
 		 def delete = Action(parse.json) {
 		 implicit r=>
 	     val userId = (r.body \ "userId").asOpt[String].getOrElse("")
 	     val contactId = (r.body \ "id").asOpt[String].getOrElse("")
-	     //this needs to b editted
-	     // val contactDel = Contact.Bind(service, contactId);
-
-	     // Delete the contact and move the deleted contact to the Deleted Items folder. 
-	     //contactDel.Delete(DeleteMode.MoveToDeletedItems);
-	       
-	  	   Ok(toJson(Map("status" -> "success", "message" -> "Contact has been deleted!")))
+	     
+	     val contactDel = Contact.bind(service,new ItemId(contactId))
+	     contactDel.delete(DeleteMode.HardDelete)
+         Ok(toJson(Map("status" -> "success", "message" -> "Contact has been deleted!")))
 	       
 	  	
 	 }
-		 /*def update = Action(parse.json) {
+		/*******************func to edit contact *******************************/ 
+		 
+		 def update = Action(parse.json) {
+		    
+		   implicit r=>
+		    
+		   val userId = (r.body \ "userId").asOpt[String].getOrElse("")
+		   val contactId = (r.body \ "id").asOpt[String].getOrElse("")
+		   	
+		   val givenName = (r.body \ "givenName").asOpt[String].getOrElse("")
+		   val fName = (r.body \ "fName").asOpt[String].getOrElse("")
+		   val lName = (r.body \ "lName").asOpt[String].getOrElse("")
+		   val displayName = (r.body \ "displayName").asOpt[String].getOrElse("")
+		   val emailId1 = (r.body \ "emailId1").asOpt[String].getOrElse("")
+		   val emailId2 = (r.body \ "emailId2").asOpt[String].getOrElse("")
+		   
+		   val streetB = (r.body \ "streetB").asOpt[String].getOrElse("")
+		   val cityB = (r.body \ "cityB").asOpt[String].getOrElse("")
+		   val stateB = (r.body \ "stateB").asOpt[String].getOrElse("")
+		   val postalcodeB = (r.body \ "postalcodeB").asOpt[String].getOrElse("")
+		   val countryB = (r.body \ "countryB").asOpt[String].getOrElse("")
+		   
+		   val streetH = (r.body \ "streetH").asOpt[String].getOrElse("")
+		   val cityH = (r.body \ "cityH").asOpt[String].getOrElse("")
+		   val stateH = (r.body \ "stateH").asOpt[String].getOrElse("")
+		   val postalcodeH = (r.body \ "postalcodeH").asOpt[String].getOrElse("")
+		   val countryH = (r.body \ "countryH").asOpt[String].getOrElse("")
+		   
+		   val phoneWork = (r.body \ "phoneWork").asOpt[Int].getOrElse("")
+		   val phoneHome = (r.body \ "phoneHome").asOpt[Int].getOrElse("")
+		   
+		   val bday = (r.body \ "bday").asOpt[String].getOrElse("")
+		    
+		//Bind to an existing meeting request by using its unique identifier.
+		   val contactVal = Contact.bind(service, new ItemId(userId))
 		
-		 Contact contact = Contact.Bind(service, new ItemId("AAMkA="));
-
-			// Update the contact's surname and company name.
-			contact.Surname = "Johnson";
-			contact.CompanyName = "Contoso";
 			
-			// Update the contact's business phone number.
-			contact.PhoneNumbers[PhoneNumberKey.BusinessPhone] = "444-444-4444";
-			
-			// Update the contact's second e-mail address.
-			contact.EmailAddresses[EmailAddressKey.EmailAddress2] = new EmailAddress("brian_2@contoso.com");
-			
-			// Update the contact's first IM address.
-			contact.ImAddresses[ImAddressKey.ImAddress1] = "brianIM1@contoso.com";
-			
-			// Update the contact's business address.
-			contact.PhysicalAddresses[PhysicalAddressKey.Business].Street = "4567 Contoso Way";
-			contact.PhysicalAddresses[PhysicalAddressKey.Business].City = "Redmond";
-			contact.PhysicalAddresses[PhysicalAddressKey.Business].State = "OH";
-			contact.PhysicalAddresses[PhysicalAddressKey.Business].PostalCode = "33333";
-			contact.PhysicalAddresses[PhysicalAddressKey.Business].CountryOrRegion = "United States";
+		   contactVal.setGivenName(givenName)
+		   contactVal.setNickName(fName)
+		   contactVal.setSurname(lName)
+		   contactVal.setDisplayName(displayName)
+		    //bdayDate=conObj.getBday()
+		   val bdayDate= new Date()
+		   bdayDate.setDate(bday.toInt)
+           contactVal.setBirthday(bdayDate)
 			
 			// Save the contact.
-			contact.Update(ConflictResolutionMode.AlwaysOverwrite);
+			contactVal.update(ConflictResolutionMode.AlwaysOverwrite);
+
 			 
 		   }
+	 
 		   
-		   //////////add contact
+		   ///////*********Func to add contact***********///////
 		 def add = Action(parse.json) {
-		 Contact contact = new Contact(service);
-			contact.setGivenName("abcde");
-			contact.setMiddleName ("xyzd");
-			contact.setSurname("Ansari");
-			contact.setInitials("Dr");
-			contact.setSubject("Contact Details");                                  
-			contact.setCompanyName("Creative solution");
-			contact.setFileAs(FileAsMapping.SurnameGivenNameMiddleSuffix);
-			contact.save();
+		   implicit r=>
+		     
+		   val contactVal = new Contact(service)
+		    
+		   val userId = (r.body \ "userId").asOpt[String].getOrElse("")
+		   val contactId = (r.body \ "id").asOpt[String].getOrElse("")
+		   val givenName = (r.body \ "givenName").asOpt[String].getOrElse("")
+		   val fName = (r.body \ "fName").asOpt[String].getOrElse("")
+		   val lName = (r.body \ "lName").asOpt[String].getOrElse("")
+		   val displayName = (r.body \ "displayName").asOpt[String].getOrElse("")
+		   val emailId1 = (r.body \ "emailId1").asOpt[String].getOrElse("")
+		   val emailId2 = (r.body \ "emailId2").asOpt[String].getOrElse("")
+		   
+		   val streetB = (r.body \ "streetB").asOpt[String].getOrElse("")
+		   val cityB = (r.body \ "cityB").asOpt[String].getOrElse("")
+		   val stateB = (r.body \ "stateB").asOpt[String].getOrElse("")
+		   val postalcodeB = (r.body \ "postalcodeB").asOpt[String].getOrElse("")
+		   val countryB = (r.body \ "countryB").asOpt[String].getOrElse("")
+		   
+		   val streetH = (r.body \ "streetH").asOpt[String].getOrElse("")
+		   val cityH = (r.body \ "cityH").asOpt[String].getOrElse("")
+		   val stateH = (r.body \ "stateH").asOpt[String].getOrElse("")
+		   val postalcodeH = (r.body \ "postalcodeH").asOpt[String].getOrElse("")
+		   val countryH = (r.body \ "countryH").asOpt[String].getOrElse("")
+		   
+		   val phoneWork = (r.body \ "phoneWork").asOpt[Int].getOrElse("")
+		   val phoneHome = (r.body \ "phoneHome").asOpt[Int].getOrElse("")
+		   
+		   val bday = (r.body \ "bday").asOpt[String].getOrElse("")
+		   
+		/*   val HasPicture = (r.body \ "HasPicture").asOpt[Boolean].getOrElse("")
+		   val exchangeId = (r.body \ "exchangeId").asOpt[String].getOrElse("")
+		   val folderId = (r.body \ "folderId").asOpt[String].getOrElse("")*/
+		   
+		   contactVal.setGivenName(givenName)
+		   contactVal.setNickName(fName)
+		   contactVal.setSurname(lName)
+		   contactVal.setDisplayName(displayName)
+		   
+		   val bdayDate= new Date()
+		   bdayDate.setDate(bday.toInt)
+           contactVal.setBirthday(bdayDate)
+			
+		   contactVal.save(WellKnownFolderName.Contacts);
 
-		 
-
-}*/
-		 
+}
+	//val conObj=  new models.Contact(org.bson.types.ObjectId.get.toString, userId,givenName,fName,lName, displayName, emailId1,emailId2,streetB,cityB,stateB,postalcodeB,countryH,streetH,cityH,stateH,postalcodeH,countryH,phoneWork,phoneHome,bday,exchangeId,folderId)	 
 	
 }

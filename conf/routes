@@ -17,8 +17,8 @@ POST	/api/email/delete									controllers.api.EmailApiController.delete
 # contact API Routes
 #POST /api/contact/add 										controllers.api.ContactApiController.add
 POST /api/contact/del 										controllers.api.ContactApiController.delete
-#POST /api/contact/edit 										controllers.api.ContactApiController.edit
-#GET /api/contact/view										controllers.api.ContactApiController.view(id: String)
+#POST /api/contact/edit 									controllers.api.ContactApiController.edit
+#GET /api/contact/view/:id									controllers.api.ContactApiController.detail(id: String)
 #GET /api/contact/search 									controllers.api.ContactApiController.search(name:String)
 
 
